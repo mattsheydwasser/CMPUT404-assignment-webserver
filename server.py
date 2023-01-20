@@ -30,9 +30,45 @@ import socketserver
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(1024).decode('utf-8').strip()
+        
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        data_list = []
+        if self.data != '':
+            data_list = (self.data).split(' ')
+        print(data_list)
+        get_file = data_list[1]
+
+        get_file = get_file.lstrip('/')
+        if get_file == '':
+            get_file = 'index.html'        
+
+        try: 
+            file = open(f'www/{get_file}', 'rb')
+            response = file.read()
+            file.close()
+            print('----------------one--------------')
+            header = 'HTTP/1.1 200 OK\n'
+            
+            if (get_file.endswith('.css')):
+                mimetype = 'text/css'
+                print(True)
+            else:
+                mimetype = 'text/html'
+
+            header += 'Content-Type: '+str(mimetype)+'\n\n'
+        except Exception:
+            header = 'HTTP/1.1 404 Not Found\n\n'
+
+        print('----------------two--------------')
+
+        final = header.encode('utf-8')
+
+        final += response
+
+        self.request.sendall(final)
+
+        #self.request.sendall(bytearray("OK",'utf-8'))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
