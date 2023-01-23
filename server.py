@@ -62,15 +62,14 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # redirections for empty ending of deep and hardcore directories
         if get_file == 'deep':
-            #get_file = '/index.html'
             red_header = 'HTTP/1.1 301 Moved Permanently \n'
             location = f'Location: deep/\n\n'
             red_header  += location
 
             self.request.sendall(red_header.encode('utf-8'))
             return
+            
         if get_file == 'hardcore':
-            #get_file = '/index.html'
             red_header = 'HTTP/1.1 301 Moved Permanently \n'
             location = f'Location: hardcore/\n\n'
             test += location
@@ -94,7 +93,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             file = open(f'www/{get_file}', 'rb')
             response = file.read()
             file.close()
-            header += 'HTTP/1.1 200 OK \n'
+            header = 'HTTP/1.1 200 OK \n'
             
             if (get_file.endswith('.css')):
                 mimetype = 'text/css'
@@ -105,6 +104,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         except Exception as exception:
             header = 'HTTP/1.1 404 Not Found\n\n'
+            print(exception)
             response = f'<html><title>Error 404: Page Not Found {get_file}</title></html>'.encode('utf-8')
 
 
@@ -114,7 +114,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         print(final)
         self.request.sendall(final)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        #self.request.sendall(bytearray("OK",'utf-8'))
 
 
 
