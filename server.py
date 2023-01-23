@@ -32,43 +32,91 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).decode('utf-8').strip()
         
+        # print the recieved request and split the data into a list 
         print ("Got a request of: %s\n" % self.data)
         data_list = []
         if self.data != '':
             data_list = (self.data).split(' ')
-        print(data_list)
-        get_file = data_list[1]
 
+
+        # only allows for GET requests to be made
+        if data_list[0] != 'GET':
+            header = 'HTTP/1.1 405 Not Found\n\n'
+            response = '<html><title>Error 405: Not Found</title></html>'
+            header += response
+            self.request.sendall((header.encode('utf-8')))
+        
+
+        # makes sure users cannot backtrack inside directories
+        if '/../' in data_list[1]:
+            header = 'HTTP/1.1 404 Page Not Found\n\n'
+            response = '<html><title>Error 404: Page Not Found</title></html>'
+            header += response
+            self.request.sendall((header.encode('utf-8')))
+
+
+        # gets the requested file from the header
+        get_file = data_list[1]
         get_file = get_file.lstrip('/')
-        if get_file == '':
+        
+
+        # redirections for empty ending of deep and hardcore directories
+        if get_file == 'deep':
+            #get_file = '/index.html'
+            red_header = 'HTTP/1.1 301 Moved Permanently \n'
+            location = f'Location: deep/\n\n'
+            red_header  += location
+
+            self.request.sendall(red_header.encode('utf-8'))
+            return
+        if get_file == 'hardcore':
+            #get_file = '/index.html'
+            red_header = 'HTTP/1.1 301 Moved Permanently \n'
+            location = f'Location: hardcore/\n\n'
+            test += location
+
+            self.request.sendall(red_header.encode('utf-8'))
+            return
+
+            
+        # set the wanted file according to the requested page, home index.html if blank
+        if get_file == 'deep/':
+            get_file = 'deep/index.html'
+        elif get_file == 'hardcode/':
+            get_file = 'hardcode/index.html'
+        elif get_file == '':
             get_file = 'index.html'        
 
+
+        # read from the file that was requested, input the correct mimetype, header, and response
+        # if page not found, give 404 error
         try: 
             file = open(f'www/{get_file}', 'rb')
             response = file.read()
             file.close()
-            print('----------------one--------------')
-            header = 'HTTP/1.1 200 OK\n'
+            header += 'HTTP/1.1 200 OK \n'
             
             if (get_file.endswith('.css')):
                 mimetype = 'text/css'
-                print(True)
             else:
                 mimetype = 'text/html'
 
             header += 'Content-Type: '+str(mimetype)+'\n\n'
-        except Exception:
+
+        except Exception as exception:
             header = 'HTTP/1.1 404 Not Found\n\n'
+            response = f'<html><title>Error 404: Page Not Found {get_file}</title></html>'.encode('utf-8')
 
-        print('----------------two--------------')
 
+      
         final = header.encode('utf-8')
-
         final += response
 
+        print(final)
         self.request.sendall(final)
+        self.request.sendall(bytearray("OK",'utf-8'))
 
-        #self.request.sendall(bytearray("OK",'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
