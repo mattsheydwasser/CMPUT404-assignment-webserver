@@ -41,7 +41,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # only allows for GET requests to be made
         if data_list[0] != 'GET':
-            header = 'HTTP/1.1 405 Not Found\n\n'
+            header = 'HTTP/1.1 405 Not Found\r\n'
             response = '<html><title>Error 405: Not Found</title></html>'
             header += response
             self.request.sendall((header.encode('utf-8')))
@@ -49,7 +49,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # makes sure users cannot backtrack inside directories
         if '/../' in data_list[1]:
-            header = 'HTTP/1.1 404 Page Not Found\n\n'
+            header = 'HTTP/1.1 404 Page Not Found\r\n'
             response = '<html><title>Error 404: Page Not Found</title></html>'
             header += response
             self.request.sendall((header.encode('utf-8')))
@@ -62,16 +62,16 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # redirections for empty ending of deep and hardcore directories
         if get_file == 'deep':
-            red_header = 'HTTP/1.1 301 Moved Permanently \n'
-            location = f'Location: deep/\n\n'
+            red_header = 'HTTP/1.1 301 Moved Permanently \r\n'
+            location = f'Location: deep/\r\n'
             red_header  += location
 
             self.request.sendall(red_header.encode('utf-8'))
             return
             
         if get_file == 'hardcore':
-            red_header = 'HTTP/1.1 301 Moved Permanently \n'
-            location = f'Location: hardcore/\n\n'
+            red_header = 'HTTP/1.1 301 Moved Permanently \r\n'
+            location = f'Location: hardcore/\r\n'
             test += location
 
             self.request.sendall(red_header.encode('utf-8'))
@@ -93,19 +93,18 @@ class MyWebServer(socketserver.BaseRequestHandler):
             file = open(f'www/{get_file}', 'rb')
             response = file.read()
             file.close()
-            header = 'HTTP/1.1 200 OK \n'
+            header = 'HTTP/1.1 200 OK \r\n'
             
             if (get_file.endswith('.css')):
                 mimetype = 'text/css'
             else:
                 mimetype = 'text/html'
 
-            header += 'Content-Type: '+str(mimetype)+'\n\n'
+            header += 'Content-Type: '+str(mimetype)+'\r\n'
 
         except Exception as exception:
-            header = 'HTTP/1.1 404 Not Found\n\n'
-            print(exception)
-            response = f'<html><title>Error 404: Page Not Found {get_file}</title></html>'.encode('utf-8')
+            header = 'HTTP/1.1 404 Not Found\r\n'
+            response = f'<html><title>Error 404: Page Not Found</title></html>'.encode('utf-8')
 
 
       
